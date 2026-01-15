@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סורק כתב רש"י | המרה לעברית</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=David+Libre:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --pink: #ffd4e5;
+            --pink-dark: #e8b4c8;
+            --mint: #a8e6cf;
+            --mint-dark: #7fb3a8;
+            --gold: #d4a574;
+            --gold-light: #ffe4b5;
+            --cream: #fff9f0;
+            --lavender: #e6e6fa;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #fff5f8 0%, #f0fdf4 30%, #fff9e6 70%, #f5f0ff 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--pink-dark) 50%, var(--mint-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--mint-dark);
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(212, 165, 116, 0.15);
+            border: 2px solid var(--pink);
+        }
+
+        .card-title {
+            color: var(--gold);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title .icon {
+            font-size: 1.5rem;
+        }
+
+        /* Upload Section */
+        .upload-area {
+            border: 3px dashed var(--mint);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: linear-gradient(135deg, #fff9f0 0%, #f5fff5 100%);
+        }
+
+        .upload-area:hover {
+            border-color: var(--pink-dark);
+            background: linear-gradient(135deg, #fff5f8 0%, #f0fdf4 100%);
+            transform: scale(1.02);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--gold);
+            background: var(--gold-light);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: var(--mint-dark);
+            font-size: 1.1rem;
+        }
+
+        .upload-formats {
+            color: #999;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Camera Section */
+        .camera-container {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 4/3;
+            display: none;
+        }
+
+        .camera-container.active {
+            display: block;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-family: 'Heebo', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-camera {
+            background: linear-gradient(135deg, var(--lavender) 0%, #b8a9c9 100%);
+            color: #4a4a5a;
+            flex: 1;
+        }
+
+        .btn-capture {
+            background: linear-gradient(135deg, var(--pink) 0%, #ffb6c1 100%);
+            color: #8b5a5a;
+            flex: 1;
+        }
+
+        .btn-convert {
+            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 100%);
+            color: #5a4a2d;
+            width: 100%;
+            font-size: 1.1rem;
+            padding: 15px;
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dark) 100%);
+            color: #2d5a4a;
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+            color: #5a4a5a;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Preview Section */
+        .preview-container {
+            margin-top: 20px;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--mint);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .preview-item:hover {
+            border-color: var(--gold);
+            transform: scale(1.05);
+        }
+
+        .preview-item.selected {
+            border-color: var(--pink-dark);
+            border-width: 3px;
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-item .page-num {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(255,100,100,0.9);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+        }
+
+        .preview-item:hover .remove-btn {
+            opacity: 1;
+        }
+
+        /* Output Section */
+        .output-card {
+            grid-column: 1 / -1;
+        }
+
+        .output-container {
+            background: linear-gradient(135deg, var(--cream) 0%, #f5fff5 100%);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px dashed var(--gold);
+            min-height: 200px;
+        }
+
+        .output-text {
+            font-family: 'David Libre', 'Heebo', serif;
+            font-size: 1.4rem;
+            line-height: 2;
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .output-placeholder {
+            color: #aaa;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .output-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Progress */
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mint) 0%, var(--gold) 50%, var(--pink) 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            color: var(--mint-dark);
+            font-size: 0.9rem;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dark) 100%);
+            color: #2d5a4a;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #ffb6c1 0%, #e88a9a 100%);
+            color: #5a2d2d;
+        }
+
+        /* Letter mapping display */
+        .letter-map {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--lavender);
+            border-radius: 15px;
+        }
+
+        .letter-map-title {
+            color: var(--gold);
+            font-size: 1rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .letter-pairs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .letter-pair {
+            background: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            border: 1px solid var(--pink);
+        }
+
+        /* Modal for image zoom */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Instructions */
+        .instructions {
+            background: linear-gradient(135deg, var(--gold-light) 0%, #fff9e6 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid var(--gold);
+        }
+
+        .instructions h3 {
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            color: #666;
+            padding-right: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📜 סורק כתב רש"י ✨</h1>
+            <p class="subtitle">סרקו תמונות או PDF והמירו מכתב רש"י לעברית</p>
+        </header>
+
+        <div class="instructions">
+            <h3>📋 איך זה עובד?</h3>
+            <ol>
+                <li>צלמו עם המצלמה או העלו קובץ תמונה/PDF של טקסט בכתב רש"י</li>
+                <li>התמונות יופיעו בתצוגה מקדימה</li>
+                <li>לחצו "המר לעברית" - המערכת תזהה את האותיות ותמיר אותן</li>
+                <li>העתיקו את התוצאה או ערכו אותה לפי הצורך</li>
+            </ol>
+        </div>
+
+        <div class="main-grid">
+            <!-- Upload Card -->
+            <div class="card">
+                <h2 class="card-title"><span class="icon">📁</span> העלאת קבצים</h2>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📷</div>
+                    <div class="upload-text">גררו קבצים לכאן או לחצו לבחירה</div>
+                    <div class="upload-formats">PNG, JPG, PDF</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*,.pdf" multiple>
+            </div>
+
+            <!-- Camera Card -->
+            <div class="card">
+                <h2 class="card-title"><span class="icon">📸</span> צילום במצלמה</h2>
+                
+                <div class="camera-container" id="cameraContainer">
+                    <video id="video" autoplay playsinline></video>
+                </div>
+                <canvas id="canvas"></canvas>
+                
+                <div class="camera-controls">
+                    <button class="btn-camera" id="startCameraBtn" onclick="startCamera()">
+                        <span>📷</span> הפעל מצלמה
+                    </button>
+                    <button class="btn-capture" id="captureBtn" onclick="capturePhoto()" disabled>
+                        <span>📸</span> צלם
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview Card -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <h2 class="card-title"><span class="icon">🖼️</span> תמונות לזיהוי</h2>
+                
+                <div class="preview-grid" id="previewGrid">
+                    <!-- Images will be added here -->
+                </div>
+                
+                <div id="noImagesMsg" style="text-align: center; color: #aaa; padding: 30px;">
+                    אין תמונות עדיין - העלו קבצים או צלמו
+                </div>
+
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">מכין...</div>
+                </div>
+
+                <button class="btn-convert" id="convertBtn" onclick="convertImages()" style="margin-top: 20px;" disabled>
+                    🔄 המר לעברית
+                </button>
+            </div>
+
+            <!-- Output Card -->
+            <div class="card output-card">
+                <h2 class="card-title"><span class="icon">📖</span> התוצאה בעברית</h2>
+                
+                <div class="output-container">
+                    <div class="output-text" id="outputText"></div>
+                    <div class="output-placeholder" id="outputPlaceholder">
+                        התוצאה תופיע כאן לאחר ההמרה...
+                    </div>
+                </div>
+
+                <div class="output-actions">
+                    <button class="btn-copy" onclick="copyResult()">
+                        <span>📋</span> העתק
+                    </button>
+                    <button class="btn-clear" onclick="clearAll()">
+                        <span>🗑️</span> נקה הכל
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for image zoom -->
+    <div class="modal" id="imageModal">
+        <button class="modal-close" onclick="closeModal()">×</button>
+        <img id="modalImage" src="">
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Clear function at START as required
+        function clearAll() {
+            if (confirm('האם לנקות את כל התמונות והתוצאות?')) {
+                images = [];
+                updatePreview();
+                document.getElementById('outputText').textContent = '';
+                document.getElementById('outputPlaceholder').style.display = 'block';
+                showToast('הכל נוקה! 🧹');
+            }
+        }
+
+        // Global variables
+        let images = [];
+        let stream = null;
+
+        // PDF.js setup
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // Rashi letter mapping - visual approximations for OCR correction
+        // כתב רש"י הוא סגנון גרפי - ה-OCR יזהה צורות דומות
+        const rashiCorrections = {
+            // תיקונים נפוצים לזיהוי שגוי
+            // ניתן להרחיב על פי הצורך
+        };
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        async function handleFiles(files) {
+            for (const file of files) {
+                if (file.type === 'application/pdf') {
+                    await handlePDF(file);
+                } else if (file.type.startsWith('image/')) {
+                    await handleImage(file);
+                }
+            }
+            updatePreview();
+        }
+
+        async function handleImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    images.push({
+                        src: e.target.result,
+                        name: file.name,
+                        type: 'image'
+                    });
+                    resolve();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handlePDF(file) {
+            try {
+                showToast('טוען PDF...');
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const scale = 2; // Higher scale for better OCR
+                    const viewport = page.getViewport({ scale });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+                    
+                    images.push({
+                        src: canvas.toDataURL('image/png'),
+                        name: `${file.name} - עמוד ${i}`,
+                        type: 'pdf-page'
+                    });
+                }
+                
+                showToast(`PDF נטען! ${pdf.numPages} עמודים 📄`);
+            } catch (error) {
+                showToast('שגיאה בטעינת PDF', true);
+                console.error(error);
+            }
+        }
+
+        // Camera handling
+        async function startCamera() {
+            const cameraContainer = document.getElementById('cameraContainer');
+            const startBtn = document.getElementById('startCameraBtn');
+            const captureBtn = document.getElementById('captureBtn');
+            const video = document.getElementById('video');
+
+            if (stream) {
+                // Stop camera
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                cameraContainer.classList.remove('active');
+                startBtn.innerHTML = '<span>📷</span> הפעל מצלמה';
+                captureBtn.disabled = true;
+                return;
+            }
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' } // Back camera for mobile
+                });
+                video.srcObject = stream;
+                cameraContainer.classList.add('active');
+                startBtn.innerHTML = '<span>⏹️</span> כבה מצלמה';
+                captureBtn.disabled = false;
+                showToast('מצלמה פעילה! 📸');
+            } catch (error) {
+                showToast('לא ניתן לגשת למצלמה', true);
+                console.error(error);
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+
+            images.push({
+                src: canvas.toDataURL('image/png'),
+                name: `צילום ${new Date().toLocaleTimeString('he-IL')}`,
+                type: 'camera'
+            });
+
+            updatePreview();
+            showToast('התמונה נשמרה! 📸');
+        }
+
+        // Preview management
+        function updatePreview() {
+            const grid = document.getElementById('previewGrid');
+            const noMsg = document.getElementById('noImagesMsg');
+            const convertBtn = document.getElementById('convertBtn');
+
+            grid.innerHTML = '';
+
+            if (images.length === 0) {
+                noMsg.style.display = 'block';
+                convertBtn.disabled = true;
+                return;
+            }
+
+            noMsg.style.display = 'none';
+            convertBtn.disabled = false;
+
+            images.forEach((img, index) => {
+                const item = document.createElement('div');
+                item.className = 'preview-item';
+                item.innerHTML = `
+                    <img src="${img.src}" alt="${img.name}" onclick="openModal(${index})">
+                    <span class="page-num">${index + 1}</span>
+                    <button class="remove-btn" onclick="removeImage(${index}); event.stopPropagation();">×</button>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        function removeImage(index) {
+            images.splice(index, 1);
+            updatePreview();
+        }
+
+        function openModal(index) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modalImg.src = images[index].src;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        // OCR Conversion
+        async function convertImages() {
+            if (images.length === 0) {
+                showToast('אין תמונות להמרה', true);
+                return;
+            }
+
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const convertBtn = document.getElementById('convertBtn');
+            const outputText = document.getElementById('outputText');
+            const outputPlaceholder = document.getElementById('outputPlaceholder');
+
+            progressContainer.classList.add('active');
+            convertBtn.disabled = true;
+            outputText.textContent = '';
+            outputPlaceholder.style.display = 'none';
+
+            let fullText = '';
+
+            try {
+                // Initialize Tesseract worker
+                progressText.textContent = 'מאתחל מנוע זיהוי...';
+                progressFill.style.width = '5%';
+
+                const worker = await Tesseract.createWorker('heb', 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const percent = Math.round(m.progress * 100);
+                            progressFill.style.width = `${percent}%`;
+                        }
+                    }
+                });
+
+                for (let i = 0; i < images.length; i++) {
+                    progressText.textContent = `מזהה תמונה ${i + 1} מתוך ${images.length}...`;
+                    
+                    const result = await worker.recognize(images[i].src);
+                    
+                    if (result.data.text.trim()) {
+                        if (images.length > 1) {
+                            fullText += `--- ${images[i].name} ---\n`;
+                        }
+                        fullText += result.data.text + '\n\n';
+                    }
+                }
+
+                await worker.terminate();
+
+                if (fullText.trim()) {
+                    // Apply any corrections
+                    fullText = applyCorrections(fullText);
+                    outputText.textContent = fullText;
+                    showToast('ההמרה הושלמה! ✨');
+                } else {
+                    outputPlaceholder.style.display = 'block';
+                    outputPlaceholder.textContent = 'לא זוהה טקסט בתמונות';
+                    showToast('לא זוהה טקסט', true);
+                }
+
+            } catch (error) {
+                console.error(error);
+                showToast('שגיאה בזיהוי הטקסט', true);
+                outputPlaceholder.style.display = 'block';
+            }
+
+            progressContainer.classList.remove('active');
+            progressFill.style.width = '0%';
+            convertBtn.disabled = false;
+        }
+
+        function applyCorrections(text) {
+            // Apply any Rashi-specific corrections
+            let corrected = text;
+            
+            for (const [wrong, right] of Object.entries(rashiCorrections)) {
+                corrected = corrected.replace(new RegExp(wrong, 'g'), right);
+            }
+            
+            return corrected;
+        }
+
+        // Copy result
+        function copyResult() {
+            const text = document.getElementById('outputText').textContent;
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('הטקסט הועתק! 📋');
+                }).catch(() => {
+                    showToast('שגיאה בהעתקה', true);
+                });
+            } else {
+                showToast('אין טקסט להעתקה', true);
+            }
+        }
+
+        // Toast notifications
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast' + (isError ? ' error' : '');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Close modal on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on background click
+        document.getElementById('imageModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
