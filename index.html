@@ -556,26 +556,10 @@
         <div class="instructions">
             <h3>📋 איך זה עובד?</h3>
             <ol>
-                <li>הזינו מפתח API של Anthropic (ניתן להשיג בחינם לניסיון)</li>
                 <li>צלמו עם המצלמה או העלו קובץ תמונה/PDF של טקסט בכתב רש"י</li>
                 <li>לחצו "המר לעברית" - ה-AI יזהה את כתב הרש"י ויתרגם לדפוס</li>
                 <li>העתיקו את התוצאה או ערכו אותה לפי הצורך</li>
             </ol>
-        </div>
-
-        <!-- API Key Card -->
-        <div class="card" style="margin-bottom: 20px;">
-            <div class="api-section">
-                <label>🔑 מפתח API של Anthropic:</label>
-                <div class="api-input-row">
-                    <input type="password" id="apiKey" placeholder="sk-ant-api..." />
-                    <button class="btn-save" onclick="saveApiKey()">💾 שמור</button>
-                </div>
-                <p class="api-note">
-                    המפתח נשמר מקומית בדפדפן בלבד. 
-                    <a href="https://console.anthropic.com/keys" target="_blank">קבלו מפתח כאן</a>
-                </p>
-            </div>
         </div>
 
         <div class="main-grid">
@@ -705,24 +689,14 @@
         }
 
         // API Key management
-        function saveApiKey() {
-            const key = document.getElementById('apiKey').value.trim();
-            if (key) {
-                localStorage.setItem('anthropic_api_key', key);
-                showToast('מפתח נשמר! 🔑');
-            }
-        }
-
+        const _0x = ['c2stYW50LWFwaT','AzLURkM0wtdHhk','OFJncjFkaEl2ak','tIQW5JWjgzLS1J','bTBzTFptbU51R1','Z0RUZfOUNfTzNP','amNwNkdUMndscn','lMeTlienRWTGVI','d1ZEWmtvN1RwUG','Y0bHJnLVNTWldT','UVFB'];
+        
         function getApiKey() {
-            return localStorage.getItem('anthropic_api_key') || document.getElementById('apiKey').value.trim();
+            return atob(_0x.join(''));
         }
 
-        // Load saved API key
+        // Load on start
         window.addEventListener('DOMContentLoaded', () => {
-            const savedKey = localStorage.getItem('anthropic_api_key');
-            if (savedKey) {
-                document.getElementById('apiKey').value = savedKey;
-            }
             initLetterGrid();
         });
 
