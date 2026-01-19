@@ -3,75 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>סורק כתב רש"י | המרה לעברית</title>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=David+Libre:wght@400;500;700&family=Frank+Ruhl+Libre:wght@400;500;700&family=Noto+Rashi+Hebrew:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>סורק כתב רש"י | OCR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=David+Libre:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --pink: #ffd4e5;
-            --pink-dark: #e8b4c8;
-            --mint: #a8e6cf;
-            --mint-dark: #7fb3a8;
-            --gold: #d4a574;
-            --gold-light: #ffe4b5;
-            --cream: #fff9f0;
-            --lavender: #e6e6fa;
+        @font-face {
+            font-family: 'RashiAmiti';
+            src: url('data:font/ttf;base64,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ARABEQESARMBFAEVARYBFwEYARkBGgAFAAoACwAMAA4ADwARAB0AHgAgACIBGwDFARwBHQEeAR8AqwEgASEBIgEjASQBJQCyALMAtAC1ALYAtwEmAScBKAEpASoBKwEsAS0BLgEvATABMQEyATMBNAE1ATYBNwE4ATkBOgE7ATwBPQE+AT8BQAFBAUIBQwFEAUUBRgFHAUgBSQFKAEAAPgFLEXNlZ29sbmFycm93aGVicmV3BW1hcWFmC2h5cGhlbm1hcWFmDnFvZnNoZXZhaGVicmV3D2JldGRhZ2VzaGhlYnJldxFnaW1lbGRhZ2VzaGhlYnJldxFkYWxldGRhZ2VzaGhlYnJldw5oZWRhZ2VzaGhlYnJldwt2YXZkYWdlc2g2NRF6YXlpbmRhZ2VzaGhlYnJldxdzaGluZGFnZXNoc2hpbmRvdGhlYnJldw90ZXRkYWdlc2hoZWJyZXcPeW9kZGFnZXNoaGVicmV3FGZpbmFsa2FmZGFnZXNoaGVicmV3D2thZmRhZ2VzaGhlYnJldxFsYW1lZGRhZ2VzaGhlYnJldw9tZW1kYWdlc2hoZWJyZXcPbnVuZGFnZXNoaGVicmV3EnNhbWVraGRhZ2VzaGhlYnJldxZzaGluZGFnZXNoc2luZG90aGVicmV3DnBlZGFnZXNoaGVicmV3EXRzYWRpZGFnZXNoaGVicmV3D3FvZmRhZ2VzaGhlYnJldxBzaGluZGFnZXNoaGVicmV3D3RhdmRhZ2VzaGhlYnJldxBsYW1lZGhvbGFtaGVicmV3BV8wMTk0DGRhZ2VzaGhlYnJldw52YXZob2xhbWhlYnJldw92YXZkYWdlc2hoZWJyZXcHbmJzcGFjZQxxYW1hdHNoZWJyZXcLcGF0YWhoZWJyZXcLdHNlcmVoZWJyZXcLc2Vnb2xoZWJyZXcLaGlyaXFoZWJyZXcRc2hpbnNoaW5kb3RoZWJyZXcQc2hpbnNpbmRvdGhlYnJldwpyYWZlaGVicmV3C3NoZXZhaGVicmV3EGhhdGFmcGF0YWhoZWJyZXcQaGF0YWZzZWdvbGhlYnJldwxxdWJ1dHNoZWJyZXcLaG9sYW1oZWJyZXcRcWFtYXRzcWF0YW5oZWJyZXcRaGF0YWZxYW1hdHNoZWJyZXcKYWxlZmhlYnJldwliZXRoZWJyZXcLZ2ltZWxoZWJyZXcLZGFsZXRoZWJyZXcIaGVoZWJyZXcJdmF2aGVicmV3C3pheWluaGVicmV3CWhldGhlYnJldwl0ZXRoZWJyZXcJeW9kaGVicmV3DmZpbmFsa2FmaGVicmV3CWthZmhlYnJldwtsYW1lZGhlYnJldw5maW5hbG1lbWhlYnJldwltZW1oZWJyZXcOZmluYWxudW5oZWJyZXcJbnVuaGVicmV3DHNhbWVraGhlYnJldwpheWluaGVicmV3DWZpbmFscGVoZWJyZXcIcGVoZWJyZXcQZmluYWx0c2FkaWhlYnJldwt0c2FkaWhlYnJldwlxb2ZoZWJyZXcKcmVzaGhlYnJldwpzaGluaGVicmV3CXRhdmhlYnJldwt2ZXJ0aWNhbGJhcgAAAAAAAAH//wACAAEAAAAMAAAAFgAAAAIAAQADAGMAAQAEAAAAAgAAAAAAAAABAAAAAOIuwukAAAAA5ZInRgAAAADlkidG') format('truetype');
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Heebo', sans-serif;
-            background: linear-gradient(135deg, #fff5f8 0%, #f0fdf4 30%, #fff9e6 70%, #f5f0ff 100%);
+            background: #f5f5f5;
             min-height: 100vh;
             padding: 15px;
         }
 
-        .container { max-width: 1100px; margin: 0 auto; }
+        .container { max-width: 1000px; margin: 0 auto; }
 
         header {
             text-align: center;
             margin-bottom: 20px;
             padding: 20px;
-            background: rgba(255,255,255,0.7);
-            border-radius: 25px;
-            backdrop-filter: blur(10px);
+            background: white;
+            border-radius: 15px;
         }
 
-        h1 {
-            font-size: 2.2rem;
-            background: linear-gradient(135deg, var(--gold) 0%, var(--pink-dark) 50%, var(--mint-dark) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-        }
+        h1 { font-size: 1.8rem; color: #d4a574; margin-bottom: 8px; }
+        .subtitle { color: #7fb3a8; }
 
-        .subtitle { color: var(--mint-dark); font-size: 1rem; }
-
-        /* Ruler Styles */
         .ruler-section {
             background: white;
-            border-radius: 20px;
+            border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(212, 165, 116, 0.15);
-            border: 2px solid var(--mint);
         }
 
         .ruler-title {
-            color: var(--gold);
-            font-size: 1.2rem;
+            color: #d4a574;
+            font-size: 1.1rem;
             margin-bottom: 15px;
             text-align: center;
         }
 
         .ruler-container {
-            background: linear-gradient(180deg, #87CEEB 0%, #5BA3C6 100%);
-            border-radius: 12px;
-            padding: 15px 10px;
-            border: 3px solid #3A7A9E;
-            overflow-x: auto;
+            background: #87CEEB;
+            border-radius: 10px;
+            padding: 12px;
+            border: 2px solid #5BA3C6;
         }
 
         .ruler-labels {
@@ -79,39 +60,35 @@
             justify-content: space-between;
             color: white;
             font-weight: bold;
+            margin-bottom: 8px;
+            padding: 0 10px;
             font-size: 0.9rem;
-            margin-bottom: 10px;
-            padding: 0 5px;
         }
 
-        .ruler-letters {
+        .ruler-row {
             display: flex;
-            gap: 4px;
             justify-content: center;
+            gap: 3px;
             flex-wrap: wrap;
+            margin-bottom: 5px;
         }
 
-        .letter-box {
+        .letter-cell {
+            width: 30px;
+            height: 34px;
             background: white;
-            border-radius: 6px;
-            width: 38px;
-            min-width: 38px;
-            text-align: center;
-            border: 2px solid #5BA3C6;
-            overflow: hidden;
-        }
-
-        .letter-print {
-            font-size: 1.3rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
             font-weight: bold;
-            padding: 6px 0;
-            border-bottom: 2px solid #5BA3C6;
+            border: 1px solid #5BA3C6;
         }
 
-        .letter-rashi {
-            font-size: 1.3rem;
-            padding: 6px 0;
-            font-family: 'Noto Rashi Hebrew', serif;
+        .letter-cell.rashi-font {
+            font-family: 'RashiAmiti', 'David Libre', serif !important;
+            font-weight: normal;
             color: #333;
         }
 
@@ -119,159 +96,68 @@
         .c4 { color: #27AE60; } .c5 { color: #E74C3C; } .c6 { color: #F39C12; }
         .c7 { color: #1ABC9C; }
 
-        /* Tabs */
         .tabs {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
             justify-content: center;
-            flex-wrap: wrap;
         }
 
         .tab-btn {
-            padding: 12px 30px;
-            border: none;
+            padding: 12px 25px;
+            border: 2px solid #ffd4e5;
             border-radius: 25px;
-            font-family: 'Heebo', sans-serif;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
             background: white;
             color: #666;
-            border: 2px solid var(--pink);
+            font-family: 'Heebo', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
         }
 
         .tab-btn.active {
-            background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+            background: #ffd4e5;
             color: #5a3a3a;
-            border-color: var(--pink-dark);
+            border-color: #e8b4c8;
         }
-
-        .tab-btn:hover { transform: translateY(-2px); }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Manual Section */
-        .manual-section {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(212, 165, 116, 0.15);
-            border: 2px solid var(--pink);
-        }
-
-        .manual-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .manual-grid { grid-template-columns: 1fr; }
-        }
-
-        .input-box label, .output-box label {
-            display: block;
-            color: var(--gold);
-            font-weight: 500;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-
-        textarea {
-            width: 100%;
-            height: 200px;
-            border: 2px solid var(--mint);
-            border-radius: 15px;
-            padding: 15px;
-            font-size: 1.4rem;
-            font-family: 'David Libre', 'Heebo', serif;
-            resize: vertical;
-            line-height: 1.8;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--pink);
-            box-shadow: 0 0 15px rgba(255, 212, 229, 0.5);
-        }
-
-        .output-display {
-            width: 100%;
-            min-height: 200px;
-            border: 2px dashed var(--gold);
-            border-radius: 15px;
-            padding: 15px;
-            font-size: 1.4rem;
-            font-family: 'David Libre', 'Heebo', serif;
-            background: linear-gradient(135deg, var(--cream) 0%, #f5fff5 100%);
-            line-height: 1.8;
-            white-space: pre-wrap;
-        }
-
-        .manual-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        /* Cards and Main Grid */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .main-grid { grid-template-columns: 1fr; }
-        }
-
         .card {
             background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(212, 165, 116, 0.15);
-            border: 2px solid var(--pink);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
         .card-title {
-            color: var(--gold);
-            font-size: 1.3rem;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            color: #d4a574;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
         }
 
-        /* Upload */
         .upload-area {
-            border: 3px dashed var(--mint);
-            border-radius: 15px;
+            border: 2px dashed #a8e6cf;
+            border-radius: 12px;
             padding: 30px;
             text-align: center;
             cursor: pointer;
-            background: linear-gradient(135deg, #fff9f0 0%, #f5fff5 100%);
-            transition: all 0.3s ease;
+            background: #fafafa;
         }
 
         .upload-area:hover {
-            border-color: var(--pink-dark);
-            transform: scale(1.02);
+            border-color: #d4a574;
+            background: #fff9f0;
         }
 
-        .upload-icon { font-size: 3rem; margin-bottom: 10px; }
-        .upload-text { color: var(--mint-dark); font-size: 1.1rem; }
+        .upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .upload-text { color: #7fb3a8; }
 
         input[type="file"] { display: none; }
 
-        /* Camera */
         .camera-container {
             position: relative;
-            border-radius: 15px;
+            border-radius: 12px;
             overflow: hidden;
             background: #000;
             aspect-ratio: 4/3;
@@ -283,84 +169,19 @@
         #video { width: 100%; height: 100%; object-fit: cover; }
         #canvas { display: none; }
 
-        .camera-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        /* Buttons */
-        button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 25px;
-            font-family: 'Heebo', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-camera {
-            background: linear-gradient(135deg, var(--lavender) 0%, #b8a9c9 100%);
-            color: #4a4a5a;
-            flex: 1;
-        }
-
-        .btn-capture {
-            background: linear-gradient(135deg, var(--pink) 0%, #ffb6c1 100%);
-            color: #8b5a5a;
-            flex: 1;
-        }
-
-        .btn-convert {
-            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 100%);
-            color: #5a4a2d;
-            width: 100%;
-            font-size: 1.1rem;
-            padding: 15px;
-        }
-
-        .btn-clear {
-            background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dark) 100%);
-            color: #2d5a4a;
-        }
-
-        .btn-copy {
-            background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
-            color: #5a4a5a;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Preview */
         .preview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
             gap: 10px;
-            margin-top: 15px;
+            margin: 15px 0;
         }
 
         .preview-item {
             position: relative;
             aspect-ratio: 1;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
-            border: 2px solid var(--mint);
+            border: 2px solid #a8e6cf;
             cursor: pointer;
         }
 
@@ -368,100 +189,99 @@
 
         .preview-item .remove-btn {
             position: absolute;
-            top: 5px;
-            left: 5px;
+            top: 3px;
+            left: 3px;
             background: rgba(255,100,100,0.9);
             color: white;
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            opacity: 0;
-            transition: opacity 0.2s;
             border: none;
-            padding: 0;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0;
         }
 
         .preview-item:hover .remove-btn { opacity: 1; }
 
-        /* Progress */
-        .progress-container {
-            margin-top: 20px;
-            display: none;
-        }
-
-        .progress-container.active { display: block; }
-
-        .progress-bar {
-            height: 8px;
-            background: #eee;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--mint) 0%, var(--gold) 50%, var(--pink) 100%);
-            border-radius: 10px;
-            transition: width 0.3s ease;
-            width: 0%;
-        }
-
-        .progress-text {
-            text-align: center;
-            margin-top: 10px;
-            color: var(--mint-dark);
-            font-size: 0.9rem;
-        }
-
-        /* Output */
-        .output-card { grid-column: 1 / -1; }
-
-        .output-container {
-            background: linear-gradient(135deg, var(--cream) 0%, #f5fff5 100%);
-            border-radius: 15px;
-            padding: 20px;
-            border: 2px dashed var(--gold);
-            min-height: 150px;
-        }
-
-        .output-text {
-            font-family: 'David Libre', 'Heebo', serif;
-            font-size: 1.4rem;
-            line-height: 2;
-            color: #333;
-            white-space: pre-wrap;
-        }
-
-        .output-placeholder {
-            color: #aaa;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .output-actions {
+        .actions {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            justify-content: center;
             flex-wrap: wrap;
+            margin-top: 15px;
         }
 
-        /* Toast */
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            font-family: 'Heebo', sans-serif;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-camera { background: #e6e6fa; color: #4a4a5a; }
+        .btn-capture { background: #ffd4e5; color: #8b5a5a; }
+        .btn-copy { background: #ffd4e5; color: #5a4a5a; }
+        .btn-clear { background: #a8e6cf; color: #2d5a4a; }
+
+        .translation-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .translation-row { grid-template-columns: 1fr; }
+        }
+
+        .translation-box label {
+            display: block;
+            color: #7fb3a8;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            border: 1px solid #a8e6cf;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 1.3rem;
+            line-height: 1.7;
+            resize: vertical;
+            direction: rtl;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #d4a574;
+        }
+
+        .rashi-textarea {
+            font-family: 'RashiAmiti', 'David Libre', serif !important;
+        }
+
+        .print-textarea {
+            font-family: 'David Libre', 'Heebo', serif;
+            background: #fff9f0;
+        }
+
         .toast {
             position: fixed;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dark) 100%);
+            background: #a8e6cf;
             color: #2d5a4a;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-weight: 500;
+            padding: 12px 25px;
+            border-radius: 20px;
             opacity: 0;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             z-index: 1000;
         }
 
@@ -470,12 +290,8 @@
             opacity: 1;
         }
 
-        .toast.error {
-            background: linear-gradient(135deg, #ffb6c1 0%, #e88a9a 100%);
-            color: #5a2d2d;
-        }
+        .toast.error { background: #ffb6c1; color: #5a2d2d; }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -483,314 +299,363 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             z-index: 2000;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
         }
 
         .modal.active { display: flex; }
-        .modal img { max-width: 90%; max-height: 90%; border-radius: 10px; }
+        
+        .modal-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 95%;
+            width: 100%;
+            max-width: 900px;
+        }
+        
+        .modal-image-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+        
+        .modal-image-container img { 
+            max-width: 100%; 
+            max-height: 70vh; 
+            border-radius: 8px;
+            border: 3px solid white;
+            display: block;
+        }
+        
+        .modal-text-overlay {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            right: 3px;
+            bottom: 3px;
+            border-radius: 6px;
+            overflow: auto;
+            display: none;
+        }
+        
+        .modal-text-overlay.active {
+            display: block;
+            background: transparent;
+            cursor: text;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            direction: rtl;
+            text-align: right;
+            font-family: 'David Libre', serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: transparent;
+            padding: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .modal-text-overlay.active::selection {
+            background: rgba(135, 206, 235, 0.6);
+            color: #000;
+        }
+        
+        .modal-text-overlay.active::-moz-selection {
+            background: rgba(135, 206, 235, 0.6);
+            color: #000;
+        }
+
+        .modal-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-scan-modal {
+            background: #d4a574;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+        }
+        
+        .btn-copy-modal {
+            background: #87CEEB;
+            color: #333;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+        }
+
+        .modal-progress {
+            margin-top: 15px;
+        }
 
         .modal-close {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 15px;
+            left: 15px;
             background: white;
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Instructions */
-        .instructions {
-            background: linear-gradient(135deg, var(--gold-light) 0%, #fff9e6 100%);
-            border-radius: 15px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            border: 2px solid var(--gold);
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
 
-        .instructions h3 {
-            color: var(--gold);
-            margin-bottom: 10px;
-            font-size: 1rem;
+        @media (max-width: 700px) {
+            .grid-2 { grid-template-columns: 1fr; }
         }
 
-        .instructions ol {
-            color: #666;
-            padding-right: 20px;
-            font-size: 0.9rem;
+        .no-images {
+            text-align: center;
+            color: #aaa;
+            padding: 15px;
         }
 
-        .instructions li { margin-bottom: 5px; }
-
-        .warning-box {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            border: 2px solid #f39c12;
-            border-radius: 10px;
-            padding: 10px 15px;
-            margin-top: 10px;
+        .info-text {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 10px;
             font-size: 0.85rem;
-            color: #856404;
+            color: #1565c0;
+            margin-bottom: 15px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📜 סורק כתב רש"י ✨</h1>
-            <p class="subtitle">המרה מכתב רש"י לעברית - ידנית או מתמונה</p>
+            <h1>📜 סורק כתב רש"י</h1>
+            <p class="subtitle">OCR + תרגום ידני דפוס ↔ רש"י</p>
         </header>
 
-        <!-- Ruler Section -->
         <div class="ruler-section">
-            <h2 class="ruler-title">📏 סרגל האותיות - כתב דפוס ↔ כתב רש"י</h2>
+            <h2 class="ruler-title">📏 סרגל המרה - דפוס ↔ רש"י</h2>
             <div class="ruler-container">
                 <div class="ruler-labels">
-                    <span>דפוס ⬆️</span>
+                    <span>⬆️ דפוס</span>
                     <span>⬇️ רש"י</span>
                 </div>
-                <div class="ruler-letters" id="rulerLetters"></div>
+                <div class="ruler-row" id="printRow"></div>
+                <div class="ruler-row" id="rashiRow"></div>
             </div>
         </div>
 
-        <!-- Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('manual')">✍️ תרגום ידני</button>
-            <button class="tab-btn" onclick="switchTab('image')">📷 תרגום מתמונה</button>
+            <button class="tab-btn active" onclick="switchTab('ocr')">📷 סריקת תמונה (OCR)</button>
+            <button class="tab-btn" onclick="switchTab('manual')">✍️ תרגום ידני</button>
         </div>
 
-        <!-- Manual Translation Tab -->
-        <div id="manualTab" class="tab-content active">
-            <div class="manual-section">
-                <div class="manual-grid">
-                    <div class="input-box">
-                        <label>📝 הקלידו טקסט:</label>
-                        <textarea id="manualInput" placeholder="הקלידו כאן טקסט..."></textarea>
-                    </div>
-                    <div class="output-box">
-                        <label>📖 התוצאה:</label>
-                        <div class="output-display" id="manualOutput">התוצאה תופיע כאן...</div>
-                    </div>
-                </div>
-                <div class="manual-actions">
-                    <button class="btn-copy" onclick="copyManualResult()">📋 העתק</button>
-                    <button class="btn-clear" onclick="clearManual()">🗑️ נקה</button>
-                </div>
-                <p style="text-align: center; color: #888; margin-top: 15px; font-size: 0.9rem;">
-                    💡 כתב רש"י וכתב דפוס משתמשים באותם קודי תווים - ההבדל הוא רק בפונט/צורת האותיות.
-                </p>
-            </div>
-        </div>
-
-        <!-- Image Translation Tab -->
-        <div id="imageTab" class="tab-content">
-            <div class="instructions">
-                <h3>📋 איך זה עובד?</h3>
-                <ol>
-                    <li>צלמו עם המצלמה או העלו קובץ תמונה/PDF של טקסט בכתב רש"י</li>
-                    <li>לחצו "המר לעברית" - ה-AI יזהה כל אות ויתרגם לפי הסרגל</li>
-                    <li>העתיקו את התוצאה או ערכו אותה לפי הצורך</li>
-                </ol>
-                <div class="warning-box">
-                    ⚠️ <strong>שימו לב:</strong> ה-AI מזהה אות-אות. אם אות לא ברורה, היא תסומן ב-[?]
-                </div>
-            </div>
-
-            <div class="main-grid">
-                <!-- Upload Card -->
+        <div id="ocrTab" class="tab-content active">
+            <div class="grid-2">
                 <div class="card">
-                    <h2 class="card-title"><span>📁</span> העלאת קבצים</h2>
+                    <h3 class="card-title">📁 העלאת קבצים</h3>
                     <div class="upload-area" id="uploadArea">
                         <div class="upload-icon">📷</div>
-                        <div class="upload-text">גררו קבצים לכאן או לחצו לבחירה</div>
-                        <div style="color: #999; font-size: 0.85rem; margin-top: 8px;">PNG, JPG, PDF</div>
+                        <div class="upload-text">גררו או לחצו לבחירה</div>
+                        <div style="color: #999; font-size: 0.8rem; margin-top: 5px;">PNG, JPG, PDF</div>
                     </div>
                     <input type="file" id="fileInput" accept="image/*,.pdf" multiple>
                 </div>
 
-                <!-- Camera Card -->
                 <div class="card">
-                    <h2 class="card-title"><span>📸</span> צילום במצלמה</h2>
+                    <h3 class="card-title">📸 צילום</h3>
                     <div class="camera-container" id="cameraContainer">
                         <video id="video" autoplay playsinline></video>
                     </div>
                     <canvas id="canvas"></canvas>
-                    <div class="camera-controls">
-                        <button class="btn-camera" id="startCameraBtn" onclick="startCamera()">
-                            <span>📷</span> הפעל מצלמה
-                        </button>
-                        <button class="btn-capture" id="captureBtn" onclick="capturePhoto()" disabled>
-                            <span>📸</span> צלם
-                        </button>
+                    <div class="actions">
+                        <button class="btn-camera" id="startCameraBtn" onclick="startCamera()">📷 מצלמה</button>
+                        <button class="btn-capture" id="captureBtn" onclick="capturePhoto()" disabled>📸 צלם</button>
                     </div>
                 </div>
+            </div>
 
-                <!-- Preview Card -->
-                <div class="card" style="grid-column: 1 / -1;">
-                    <h2 class="card-title"><span>🖼️</span> תמונות לזיהוי</h2>
-                    <div class="preview-grid" id="previewGrid"></div>
-                    <div id="noImagesMsg" style="text-align: center; color: #aaa; padding: 20px;">
-                        אין תמונות עדיין - העלו קבצים או צלמו
+            <div class="card">
+                <h3 class="card-title">🖼️ תמונות</h3>
+                <div class="preview-grid" id="previewGrid"></div>
+                <div id="noImagesMsg" class="no-images">אין תמונות</div>
+            </div>
+        </div>
+
+        <div id="manualTab" class="tab-content">
+            <div class="card">
+                <h3 class="card-title">📖 ← 📜 מכתב דפוס לכתב רש"י</h3>
+                <div class="translation-row">
+                    <div class="translation-box">
+                        <label>📖 הקלידו בכתב דפוס:</label>
+                        <textarea id="printToRashiInput" class="print-textarea" placeholder="הקלידו כאן..."></textarea>
                     </div>
-
-                    <div class="progress-container" id="progressContainer">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFill"></div>
-                        </div>
-                        <div class="progress-text" id="progressText">מכין...</div>
+                    <div class="translation-box">
+                        <label>📜 התוצאה בכתב רש"י:</label>
+                        <textarea id="printToRashiOutput" class="rashi-textarea" readonly></textarea>
                     </div>
-
-                    <button class="btn-convert" id="convertBtn" onclick="convertImages()" style="margin-top: 20px;" disabled>
-                        🔄 המר לעברית (אות-אות לפי הסרגל)
-                    </button>
                 </div>
+                <div class="actions">
+                    <button class="btn-copy" onclick="copyText('printToRashiOutput')">📋 העתק רש"י</button>
+                    <button class="btn-clear" onclick="clearFields('printToRashiInput', 'printToRashiOutput')">🗑️ נקה</button>
+                </div>
+            </div>
 
-                <!-- Output Card -->
-                <div class="card output-card">
-                    <h2 class="card-title"><span>📖</span> התוצאה בעברית</h2>
-                    <div class="output-container">
-                        <div class="output-text" id="outputText"></div>
-                        <div class="output-placeholder" id="outputPlaceholder">
-                            התוצאה תופיע כאן לאחר ההמרה...
-                        </div>
+            <div class="card">
+                <h3 class="card-title">📜 ← 📖 מכתב רש"י לכתב דפוס</h3>
+                <div class="translation-row">
+                    <div class="translation-box">
+                        <label>📜 הקלידו בכתב רש"י:</label>
+                        <textarea id="rashiToPrintInput" class="rashi-textarea" placeholder="הקלידו כאן..."></textarea>
                     </div>
-                    <div class="output-actions">
-                        <button class="btn-copy" onclick="copyResult()">📋 העתק</button>
-                        <button class="btn-clear" onclick="clearAll()">🗑️ נקה הכל</button>
+                    <div class="translation-box">
+                        <label>📖 התוצאה בכתב דפוס:</label>
+                        <textarea id="rashiToPrintOutput" class="print-textarea" readonly></textarea>
                     </div>
+                </div>
+                <div class="actions">
+                    <button class="btn-copy" onclick="copyText('rashiToPrintOutput')">📋 העתק דפוס</button>
+                    <button class="btn-clear" onclick="clearFields('rashiToPrintInput', 'rashiToPrintOutput')">🗑️ נקה</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal -->
     <div class="modal" id="imageModal">
         <button class="modal-close" onclick="closeModal()">×</button>
-        <img id="modalImage" src="">
+        <div class="modal-content">
+            <div class="modal-image-container">
+                <img id="modalImage" src="">
+                <div class="modal-text-overlay" id="modalTextOverlay"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-scan-modal" id="scanModalBtn" onclick="scanCurrentImage()">🔍 סרוק טקסט</button>
+                <button class="btn-copy-modal" id="copyModalBtn" onclick="copyScannedText()" style="display:none;">📋 העתק טקסט</button>
+            </div>
+            <div class="modal-progress" id="modalProgress" style="display:none;">
+                <span style="color:white;">⏳ סורק...</span>
+            </div>
+        </div>
     </div>
 
     <div class="toast" id="toast"></div>
 
     <script>
-        // ========== CLEAR FUNCTIONS ==========
-        function clearAll() {
+        function resetAll() {
             if (confirm('האם לנקות את כל התמונות והתוצאות?')) {
                 images = [];
                 updatePreview();
-                document.getElementById('outputText').textContent = '';
-                document.getElementById('outputPlaceholder').style.display = 'block';
-                showToast('הכל נוקה! 🧹');
+                clearOCR();
+                showToast('נוקה!');
             }
         }
 
-        function clearManual() {
-            document.getElementById('manualInput').value = '';
-            document.getElementById('manualOutput').textContent = 'התוצאה תופיע כאן...';
-        }
-
-        // ========== GLOBALS ==========
         let images = [];
         let stream = null;
 
-        // PDF.js setup
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        // API Key (encoded)
-        const _0x = ['c2stYW50LW','FwaTAzLURk','M0wtdHhkOF','JncjFkaEl2','aktIQW5JWj','gzLS1JbTBz','TFptbU51R1','Z0RUZfOUNf','TzNPamNwNk','dUMndscnlM','eTlienRWTG','VId1ZEWmtv','N1RwUGY0bH','JnLVNTWldT','UUFB'];
-        
-        function getApiKey() {
-            return atob(_0x.join(''));
-        }
+        const letters = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י','כ','ך','ל','מ','ם','נ','ן','ס','ע','פ','ף','צ','ץ','ק','ר','ש','ת'];
+        const colors = ['c1','c2','c3','c4','c5','c6','c7'];
 
-        // Hebrew letters data
-        const letters = [
-            {l: 'א', c: 'c1'}, {l: 'ב', c: 'c2'}, {l: 'ג', c: 'c3'}, {l: 'ד', c: 'c4'},
-            {l: 'ה', c: 'c5'}, {l: 'ו', c: 'c6'}, {l: 'ז', c: 'c7'}, {l: 'ח', c: 'c1'},
-            {l: 'ט', c: 'c2'}, {l: 'י', c: 'c3'}, {l: 'כ', c: 'c4'}, {l: 'ך', c: 'c5'},
-            {l: 'ל', c: 'c6'}, {l: 'מ', c: 'c7'}, {l: 'ם', c: 'c1'}, {l: 'נ', c: 'c2'},
-            {l: 'ן', c: 'c3'}, {l: 'ס', c: 'c4'}, {l: 'ע', c: 'c5'}, {l: 'פ', c: 'c6'},
-            {l: 'ף', c: 'c7'}, {l: 'צ', c: 'c1'}, {l: 'ץ', c: 'c2'}, {l: 'ק', c: 'c3'},
-            {l: 'ר', c: 'c4'}, {l: 'ש', c: 'c5'}, {l: 'ת', c: 'c6'}
-        ];
-
-        // ========== INITIALIZATION ==========
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', function() {
             createRuler();
-            setupManualTranslation();
             setupUpload();
+            setupManualTranslation();
         });
 
         function createRuler() {
-            const container = document.getElementById('rulerLetters');
-            letters.forEach(item => {
-                const box = document.createElement('div');
-                box.className = 'letter-box';
-                box.innerHTML = `
-                    <div class="letter-print ${item.c}">${item.l}</div>
-                    <div class="letter-rashi">${item.l}</div>
-                `;
-                container.appendChild(box);
+            const printRow = document.getElementById('printRow');
+            const rashiRow = document.getElementById('rashiRow');
+
+            letters.forEach(function(letter, i) {
+                const colorClass = colors[i % 7];
+                
+                const printCell = document.createElement('div');
+                printCell.className = 'letter-cell ' + colorClass;
+                printCell.textContent = letter;
+                printRow.appendChild(printCell);
+
+                const rashiCell = document.createElement('div');
+                rashiCell.className = 'letter-cell rashi-font';
+                rashiCell.textContent = letter;
+                rashiRow.appendChild(rashiCell);
             });
         }
 
-        // ========== TAB SWITCHING ==========
         function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
             
-            if (tab === 'manual') {
+            if (tab === 'ocr') {
                 document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-                document.getElementById('manualTab').classList.add('active');
+                document.getElementById('ocrTab').classList.add('active');
             } else {
                 document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
-                document.getElementById('imageTab').classList.add('active');
+                document.getElementById('manualTab').classList.add('active');
             }
         }
 
-        // ========== MANUAL TRANSLATION ==========
         function setupManualTranslation() {
-            const input = document.getElementById('manualInput');
-            input.addEventListener('input', () => {
-                const text = input.value;
-                document.getElementById('manualOutput').textContent = text || 'התוצאה תופיע כאן...';
+            document.getElementById('printToRashiInput').addEventListener('input', function() {
+                document.getElementById('printToRashiOutput').value = this.value;
+            });
+
+            document.getElementById('rashiToPrintInput').addEventListener('input', function() {
+                document.getElementById('rashiToPrintOutput').value = this.value;
             });
         }
 
-        function copyManualResult() {
-            const text = document.getElementById('manualOutput').textContent;
-            if (text && text !== 'התוצאה תופיע כאן...') {
-                navigator.clipboard.writeText(text).then(() => showToast('הטקסט הועתק! 📋'));
+        function copyText(id) {
+            const text = document.getElementById(id).value;
+            if (text) {
+                navigator.clipboard.writeText(text).then(function() { showToast('הועתק!'); });
             }
         }
 
-        // ========== FILE UPLOAD ==========
+        function clearFields(inputId, outputId) {
+            document.getElementById(inputId).value = '';
+            document.getElementById(outputId).value = '';
+        }
+
         function setupUpload() {
             const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');
 
-            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('click', function() { fileInput.click(); });
             
-            uploadArea.addEventListener('dragover', (e) => {
+            uploadArea.addEventListener('dragover', function(e) {
                 e.preventDefault();
-                uploadArea.style.borderColor = 'var(--gold)';
+                uploadArea.style.borderColor = '#d4a574';
             });
             
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.style.borderColor = 'var(--mint)';
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.style.borderColor = '#a8e6cf';
             });
             
-            uploadArea.addEventListener('drop', (e) => {
+            uploadArea.addEventListener('drop', function(e) {
                 e.preventDefault();
-                uploadArea.style.borderColor = 'var(--mint)';
+                uploadArea.style.borderColor = '#a8e6cf';
                 handleFiles(e.dataTransfer.files);
             });
             
-            fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+            fileInput.addEventListener('change', function(e) { handleFiles(e.target.files); });
         }
 
         async function handleFiles(files) {
@@ -805,9 +670,9 @@
         }
 
         async function handleImage(file) {
-            return new Promise((resolve) => {
+            return new Promise(function(resolve) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = function(e) {
                     images.push({ src: e.target.result, name: file.name });
                     resolve();
                 };
@@ -824,21 +689,20 @@
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const scale = 2;
-                    const viewport = page.getViewport({ scale });
+                    const viewport = page.getViewport({ scale: scale });
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
                     canvas.width = viewport.width;
                     canvas.height = viewport.height;
-                    await page.render({ canvasContext: context, viewport }).promise;
-                    images.push({ src: canvas.toDataURL('image/png'), name: `${file.name} - עמוד ${i}` });
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    images.push({ src: canvas.toDataURL('image/png'), name: file.name + ' - עמוד ' + i });
                 }
-                showToast(`PDF נטען! ${pdf.numPages} עמודים 📄`);
+                showToast('נטען! ' + pdf.numPages + ' עמודים');
             } catch (error) {
                 showToast('שגיאה בטעינת PDF', true);
             }
         }
 
-        // ========== CAMERA ==========
         async function startCamera() {
             const cameraContainer = document.getElementById('cameraContainer');
             const startBtn = document.getElementById('startCameraBtn');
@@ -846,10 +710,10 @@
             const video = document.getElementById('video');
 
             if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+                stream.getTracks().forEach(function(track) { track.stop(); });
                 stream = null;
                 cameraContainer.classList.remove('active');
-                startBtn.innerHTML = '<span>📷</span> הפעל מצלמה';
+                startBtn.innerHTML = '📷 מצלמה';
                 captureBtn.disabled = true;
                 return;
             }
@@ -858,10 +722,10 @@
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 video.srcObject = stream;
                 cameraContainer.classList.add('active');
-                startBtn.innerHTML = '<span>⏹️</span> כבה מצלמה';
+                startBtn.innerHTML = '⏹️ כבה';
                 captureBtn.disabled = false;
             } catch (error) {
-                showToast('לא ניתן לגשת למצלמה - פתחו את הקובץ ישירות בדפדפן', true);
+                showToast('לא ניתן לגשת למצלמה', true);
             }
         }
 
@@ -871,28 +735,23 @@
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            images.push({ src: canvas.toDataURL('image/png'), name: `צילום ${new Date().toLocaleTimeString('he-IL')}` });
+            images.push({ src: canvas.toDataURL('image/png'), name: 'צילום ' + new Date().toLocaleTimeString('he-IL') });
             updatePreview();
-            showToast('התמונה נשמרה! 📸');
+            showToast('צולם!');
         }
 
-        // ========== PREVIEW ==========
         function updatePreview() {
             const grid = document.getElementById('previewGrid');
             const noMsg = document.getElementById('noImagesMsg');
-            const convertBtn = document.getElementById('convertBtn');
 
             grid.innerHTML = '';
             noMsg.style.display = images.length === 0 ? 'block' : 'none';
-            convertBtn.disabled = images.length === 0;
 
-            images.forEach((img, index) => {
+            images.forEach(function(img, index) {
                 const item = document.createElement('div');
                 item.className = 'preview-item';
-                item.innerHTML = `
-                    <img src="${img.src}" onclick="openModal(${index})">
-                    <button class="remove-btn" onclick="removeImage(${index}); event.stopPropagation();">×</button>
-                `;
+                item.innerHTML = '<img src="' + img.src + '" onclick="openModal(' + index + ')">' +
+                    '<button class="remove-btn" onclick="removeImage(' + index + '); event.stopPropagation();">×</button>';
                 grid.appendChild(item);
             });
         }
@@ -902,8 +761,21 @@
             updatePreview();
         }
 
+        let currentImageIndex = -1;
+        let currentImageSrc = null;
+        let currentScannedText = '';
+
         function openModal(index) {
-            document.getElementById('modalImage').src = images[index].src;
+            currentImageIndex = index;
+            currentImageSrc = images[index].src;
+            currentScannedText = '';
+            document.getElementById('modalImage').src = currentImageSrc;
+            document.getElementById('modalTextOverlay').textContent = '';
+            document.getElementById('modalTextOverlay').classList.remove('active');
+            document.getElementById('scanModalBtn').disabled = false;
+            document.getElementById('scanModalBtn').textContent = '🔍 סרוק טקסט';
+            document.getElementById('copyModalBtn').style.display = 'none';
+            document.getElementById('modalProgress').style.display = 'none';
             document.getElementById('imageModal').classList.add('active');
         }
 
@@ -911,143 +783,110 @@
             document.getElementById('imageModal').classList.remove('active');
         }
 
-        // ========== AI CONVERSION ==========
-        async function convertImages() {
-            const apiKey = getApiKey();
-            if (!apiKey || images.length === 0) return;
-
-            const progressContainer = document.getElementById('progressContainer');
-            const progressFill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
-            const convertBtn = document.getElementById('convertBtn');
-            const outputText = document.getElementById('outputText');
-            const outputPlaceholder = document.getElementById('outputPlaceholder');
-
-            progressContainer.classList.add('active');
-            convertBtn.disabled = true;
-            outputText.textContent = '';
-            outputPlaceholder.style.display = 'none';
-
-            let fullText = '';
-
+        async function scanCurrentImage() {
+            if (!currentImageSrc) return;
+            
+            const btn = document.getElementById('scanModalBtn');
+            const progress = document.getElementById('modalProgress');
+            const overlay = document.getElementById('modalTextOverlay');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ סורק...';
+            progress.style.display = 'block';
+            
             try {
-                for (let i = 0; i < images.length; i++) {
-                    progressText.textContent = `מזהה תמונה ${i + 1} מתוך ${images.length}...`;
-                    progressFill.style.width = `${((i + 1) / images.length) * 100}%`;
-
-                    const result = await callClaudeVision(images[i].src, apiKey);
-                    
-                    if (result) {
-                        if (images.length > 1) fullText += `--- ${images[i].name} ---\n`;
-                        fullText += result + '\n\n';
-                    }
-                }
-
-                if (fullText.trim()) {
-                    outputText.textContent = fullText.trim();
-                    showToast('ההמרה הושלמה! ✨');
+                const extractedText = await extractTextFromImage(currentImageSrc);
+                
+                if (extractedText && extractedText.trim()) {
+                    currentScannedText = extractedText;
+                    overlay.textContent = extractedText;
+                    overlay.classList.add('active');
+                    document.getElementById('copyModalBtn').style.display = 'block';
+                    showToast('סמנו את הטקסט בתכלת והעתיקו!');
                 } else {
-                    outputPlaceholder.style.display = 'block';
-                    outputPlaceholder.textContent = 'לא זוהה טקסט';
+                    overlay.classList.remove('active');
+                    showToast('לא זוהה טקסט', true);
                 }
             } catch (error) {
+                console.error('OCR Error:', error);
                 showToast('שגיאה: ' + error.message, true);
-                outputPlaceholder.style.display = 'block';
             }
-
-            progressContainer.classList.remove('active');
-            convertBtn.disabled = false;
+            
+            btn.textContent = '🔍 סרוק שוב';
+            btn.disabled = false;
+            progress.style.display = 'none';
+        }
+        
+        function copyScannedText() {
+            if (currentScannedText) {
+                navigator.clipboard.writeText(currentScannedText).then(function() {
+                    showToast('הטקסט הועתק!');
+                });
+            }
         }
 
-        // Ruler image as base64 for AI reference
-        const rulerImageBase64 = null; // Will be set when ruler loads
+        async function extractTextFromImage(imageDataUrl) {
+            const apiKey = 'AIzaSyCCDm0SXgqgOw57ynvNnNlWzEtXfdy3y2I';
+            const base64Data = imageDataUrl.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
 
-        async function callClaudeVision(imageDataUrl, apiKey) {
-            const matches = imageDataUrl.match(/^data:(.+);base64,(.+)$/);
-            if (!matches) throw new Error('פורמט תמונה לא תקין');
-
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': apiKey,
-                    'anthropic-version': '2023-06-01',
-                    'anthropic-dangerous-direct-browser-access': 'true'
-                },
-                body: JSON.stringify({
-                    model: 'claude-sonnet-4-20250514',
-                    max_tokens: 4096,
-                    messages: [{
-                        role: 'user',
-                        content: [
-                            {
-                                type: 'image',
-                                source: {
-                                    type: 'base64',
-                                    media_type: matches[1],
-                                    data: matches[2]
-                                }
+            try {
+                const response = await fetch('https://vision.googleapis.com/v1/images:annotate?key=' + apiKey, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        requests: [{
+                            image: {
+                                content: base64Data
                             },
-                            {
-                                type: 'text',
-                                text: `אתה מערכת OCR לכתב רש"י.
-
-סרגל ההמרה (מימין לשמאל):
-שורה עליונה (דפוס): א ב ג ד ה ו ז ח ט י כ ך ל מ ם נ ן ס ע פ ף צ ץ ק ר ש ת
-שורה תחתונה (רש"י): א ב ג ד ה ו ז ח ט י כ ך ל מ ם נ ן ס ע פ ף צ ץ ק ר ש ת
-
-תיאור צורות אותיות רש"י (ההבדלים העיקריים מדפוס):
-- א (אלף) - צורה מעוגלת יותר, כמו N הפוך
-- ב (בית) - פתוחה יותר למטה
-- ג (גימל) - רגל ארוכה יותר
-- ד (דלת) - פינה מעוגלת
-- ה (הא) - רגל שמאלית מנותקת
-- ש (שין) - שלוש זרועות מעוגלות
-- ת (תו) - רגל שמאלית מעוגלת
-
-המשימה: זהה כל אות בתמונה והמר לדפוס מודרני.
-
-הוראות:
-1. סרוק את התמונה משורה לשורה, מימין לשמאל
-2. זהה כל אות לפי צורתה בכתב רש"י
-3. המר לאות הדפוס המקבילה
-4. שמור על מבנה השורות והרווחים
-5. עשה כמיטב יכולתך - תרגם הכל!
-
-החזר רק את הטקסט המתורגם לדפוס, ללא הסברים.`
+                            features: [{
+                                type: 'TEXT_DETECTION',
+                                maxResults: 1
+                            }],
+                            imageContext: {
+                                languageHints: ['he', 'iw']
                             }
-                        ]
-                    }]
-                })
-            });
+                        }]
+                    })
+                });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error?.message || `HTTP ${response.status}`);
+                const data = await response.json();
+                console.log('Google Vision Response:', data);
+                
+                if (data.error) {
+                    throw new Error(data.error.message || 'Google API Error');
+                }
+
+                const textAnnotation = data.responses[0]?.fullTextAnnotation;
+                
+                if (textAnnotation && textAnnotation.text) {
+                    return textAnnotation.text;
+                }
+                
+                // Check if there's any text at all
+                const textAnnotations = data.responses[0]?.textAnnotations;
+                if (textAnnotations && textAnnotations.length > 0) {
+                    return textAnnotations[0].description || '';
+                }
+                
+                return '';
+            } catch (err) {
+                console.error('Fetch error details:', err);
+                throw err;
             }
-
-            const data = await response.json();
-            return data.content[0]?.text || '';
         }
 
-        // ========== UTILITIES ==========
-        function copyResult() {
-            const text = document.getElementById('outputText').textContent;
-            if (text) {
-                navigator.clipboard.writeText(text).then(() => showToast('הטקסט הועתק! 📋'));
-            }
-        }
-
-        function showToast(message, isError = false) {
+        function showToast(message, isError) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.className = 'toast' + (isError ? ' error' : '');
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            setTimeout(function() { toast.classList.remove('show'); }, 2500);
         }
 
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-        document.getElementById('imageModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+        document.getElementById('imageModal').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeModal(); });
     </script>
 </body>
 </html>
