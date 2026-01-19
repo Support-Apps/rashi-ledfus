@@ -826,55 +826,110 @@
         }
 
         async function extractTextFromImage(imageDataUrl) {
+            // Try Google Vision first for regular Hebrew
+            const googleResult = await tryGoogleVision(imageDataUrl);
+            
+            // If it looks like garbage (Rashi misread), try Claude with specific Rashi instructions
+            if (googleResult && looksLikeValidHebrew(googleResult)) {
+                return googleResult;
+            }
+            
+            // Fallback to Claude for Rashi script
+            return await tryClaudeForRashi(imageDataUrl);
+        }
+        
+        function looksLikeValidHebrew(text) {
+            // Check if the text has reasonable Hebrew structure
+            const hebrewLetters = text.match(/[\u0590-\u05FF]/g) || [];
+            const total = text.replace(/\s/g, '').length;
+            // If more than 70% is Hebrew letters, probably valid
+            return total > 0 && (hebrewLetters.length / total) > 0.7;
+        }
+        
+        async function tryGoogleVision(imageDataUrl) {
             const apiKey = 'AIzaSyCCDm0SXgqgOw57ynvNnNlWzEtXfdy3y2I';
             const base64Data = imageDataUrl.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
 
             try {
                 const response = await fetch('https://vision.googleapis.com/v1/images:annotate?key=' + apiKey, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         requests: [{
-                            image: {
-                                content: base64Data
-                            },
-                            features: [{
-                                type: 'TEXT_DETECTION',
-                                maxResults: 1
-                            }],
-                            imageContext: {
-                                languageHints: ['he', 'iw']
-                            }
+                            image: { content: base64Data },
+                            features: [{ type: 'TEXT_DETECTION', maxResults: 1 }],
+                            imageContext: { languageHints: ['he', 'iw'] }
                         }]
                     })
                 });
 
                 const data = await response.json();
-                console.log('Google Vision Response:', data);
+                if (data.error) return null;
                 
-                if (data.error) {
-                    throw new Error(data.error.message || 'Google API Error');
-                }
-
-                const textAnnotation = data.responses[0]?.fullTextAnnotation;
-                
-                if (textAnnotation && textAnnotation.text) {
-                    return textAnnotation.text;
-                }
-                
-                // Check if there's any text at all
-                const textAnnotations = data.responses[0]?.textAnnotations;
-                if (textAnnotations && textAnnotations.length > 0) {
-                    return textAnnotations[0].description || '';
-                }
-                
-                return '';
+                return data.responses[0]?.textAnnotations?.[0]?.description || null;
             } catch (err) {
-                console.error('Fetch error details:', err);
-                throw err;
+                console.error('Google Vision error:', err);
+                return null;
             }
+        }
+        
+        async function tryClaudeForRashi(imageDataUrl) {
+            const apiKey = 'sk-ant-api03-Dd3L-txd8Rgr1dhIvjkHAnIZ83--Im0sLZmmNuGgDTF_9C_O3Ojcp6tC2wwrryy9bztVLUHwVDZko7TpPf4lRg-SSZWSQAA';
+            const matches = imageDataUrl.match(/^data:(.+);base64,(.+)$/);
+            if (!matches) throw new Error('פורמט לא תקין');
+
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01',
+                    'anthropic-dangerous-direct-browser-access': 'true'
+                },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-20250514',
+                    max_tokens: 8192,
+                    messages: [{
+                        role: 'user',
+                        content: [
+                            {
+                                type: 'image',
+                                source: {
+                                    type: 'base64',
+                                    media_type: matches[1],
+                                    data: matches[2]
+                                }
+                            },
+                            {
+                                type: 'text',
+                                text: `זוהי תמונה של טקסט בכתב רש"י (Rashi script). 
+
+המשימה שלך: להעתיק את הטקסט תו-בתו, אות-באות.
+
+חוקים:
+- כתב רש"י משתמש באותיות עבריות עם צורה גרפית שונה
+- כל אות בכתב רש"י מקבילה לאות עברית רגילה
+- פלוט: אותיות עבריות רגילות (א ב ג ד ה וכו')
+- אל תתרגם משמעות
+- אל תפרש
+- אל תוסיף פיסוק
+- אל תשנה מילים
+- העתק בדיוק מה שכתוב, שורה אחר שורה
+
+פלט (טקסט בלבד):`
+                            }
+                        ]
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'HTTP ' + response.status);
+            }
+
+            const data = await response.json();
+            return data.content[0]?.text || '';
         }
 
         function showToast(message, isError) {
