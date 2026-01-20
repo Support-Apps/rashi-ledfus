@@ -340,33 +340,35 @@
             right: 3px;
             bottom: 3px;
             border-radius: 6px;
-            overflow: auto;
+            overflow: hidden;
             display: none;
         }
         
         .modal-text-overlay.active {
             display: block;
             background: transparent;
+        }
+        
+        .word-span {
+            position: absolute;
+            color: transparent;
+            background: transparent;
             cursor: text;
             user-select: text;
             -webkit-user-select: text;
             -moz-user-select: text;
+            font-size: 10px;
+            line-height: 1;
             direction: rtl;
-            text-align: right;
-            font-size: 12px;
-            line-height: 1.5;
-            color: transparent;
-            padding: 10px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            white-space: nowrap;
         }
         
-        .modal-text-overlay.active::selection {
+        .word-span::selection {
             background: rgba(135, 206, 235, 0.6);
             color: transparent;
         }
         
-        .modal-text-overlay.active::-moz-selection {
+        .word-span::-moz-selection {
             background: rgba(135, 206, 235, 0.6);
             color: transparent;
         }
@@ -792,16 +794,29 @@
             btn.disabled = true;
             btn.textContent = '⏳ סורק...';
             progress.style.display = 'block';
+            progress.innerHTML = '<span style="color:white;">⏳ סורק... אנא המתיני</span>';
             
             try {
-                const extractedText = await extractTextFromImage(currentImageSrc);
+                const result = await extractTextFromImage(currentImageSrc);
                 
-                if (extractedText && extractedText.trim()) {
-                    currentScannedText = extractedText;
-                    overlay.textContent = extractedText;
+                if (result && result.words && result.words.length > 0) {
+                    // Clear overlay and place each word at its exact position
+                    overlay.innerHTML = '';
                     overlay.classList.add('active');
+                    
+                    result.words.forEach(function(word) {
+                        const wordSpan = document.createElement('span');
+                        wordSpan.className = 'word-span';
+                        wordSpan.textContent = word.text + ' ';
+                        wordSpan.style.left = word.x + '%';
+                        wordSpan.style.top = word.y + '%';
+                        overlay.appendChild(wordSpan);
+                    });
+                    
+                    // Store full text for copy button (preserve reading order)
+                    currentScannedText = result.words.map(w => w.text).join(' ');
                     document.getElementById('copyModalBtn').style.display = 'block';
-                    showToast('סמנו את הטקסט בתכלת והעתיקו!');
+                    showToast('סמנו טקסט והעתיקו!');
                 } else {
                     overlay.classList.remove('active');
                     showToast('לא זוהה טקסט', true);
@@ -852,19 +867,21 @@
                 if (!analyzeResponse.ok) {
                     const errorText = await analyzeResponse.text();
                     console.error('Azure error:', errorText);
-                    throw new Error('Azure API Error: ' + analyzeResponse.status);
+                    throw new Error('Azure API Error: ' + analyzeResponse.status + ' - ' + errorText);
                 }
 
                 // Get the operation location to poll for results
                 const operationLocation = analyzeResponse.headers.get('Operation-Location');
+                console.log('Operation Location:', operationLocation);
+                
                 if (!operationLocation) {
                     throw new Error('No operation location returned');
                 }
 
                 // Poll for results
                 let result = null;
-                for (let i = 0; i < 10; i++) {
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+                for (let i = 0; i < 30; i++) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     
                     const resultResponse = await fetch(operationLocation, {
                         method: 'GET',
@@ -874,27 +891,44 @@
                     });
                     
                     result = await resultResponse.json();
-                    console.log('Azure result:', result);
+                    console.log('Azure poll result:', result.status);
                     
                     if (result.status === 'succeeded') {
                         break;
                     } else if (result.status === 'failed') {
-                        throw new Error('OCR failed');
+                        throw new Error('OCR failed: ' + JSON.stringify(result));
                     }
                 }
 
                 if (result && result.status === 'succeeded' && result.analyzeResult) {
-                    // Extract text from all lines
-                    const lines = [];
+                    // Return words with their bounding boxes to preserve layout
+                    const words = [];
+                    let pageWidth = 1;
+                    let pageHeight = 1;
+                    
                     result.analyzeResult.readResults.forEach(function(page) {
+                        pageWidth = page.width || 1;
+                        pageHeight = page.height || 1;
+                        
                         page.lines.forEach(function(line) {
-                            lines.push(line.text);
+                            line.words.forEach(function(word) {
+                                // boundingBox is [x1,y1,x2,y2,x3,y3,x4,y4] - 4 corners
+                                const bb = word.boundingBox;
+                                words.push({
+                                    text: word.text,
+                                    x: bb[0] / pageWidth * 100,
+                                    y: bb[1] / pageHeight * 100,
+                                    width: (bb[2] - bb[0]) / pageWidth * 100,
+                                    height: (bb[5] - bb[1]) / pageHeight * 100
+                                });
+                            });
                         });
                     });
-                    return lines.join('\n');
+                    
+                    return { words: words, pageWidth: pageWidth, pageHeight: pageHeight };
                 }
                 
-                return '';
+                return { words: [], pageWidth: 1, pageHeight: 1 };
             } catch (err) {
                 console.error('Azure Vision error:', err);
                 throw err;
